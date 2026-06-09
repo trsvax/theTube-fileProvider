@@ -77,6 +77,8 @@ actor TubeRequest {
             throw TubeError.unexpected("Not an HTTP response")
         }
 
+        NSLog("TubeRequest: %@ → HTTP %d (%d bytes)", path, http.statusCode, data.count)
+
         switch http.statusCode {
         case 200:
             return try JSONSerialization.jsonObject(with: data)
@@ -91,6 +93,7 @@ actor TubeRequest {
             throw TubeError.authFailed(reason)
 
         default:
+            NSLog("TubeRequest: unexpected response: %@", String(data: data.prefix(200), encoding: .utf8) ?? "binary")
             throw TubeError.unexpected("HTTP \(http.statusCode)")
         }
     }

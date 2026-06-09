@@ -50,7 +50,12 @@ class TubeItem: NSObject, NSFileProviderItem {
     }
 
     var itemVersion: NSFileProviderItemVersion {
-        // No versioning — content is always fresh from the tube
-        NSFileProviderItemVersion(contentVersion: Data("1".utf8), metadataVersion: Data("1".utf8))
+        // Unique version per access — forces re-fetch since we don't cache
+        let ts = String(Int(Date().timeIntervalSince1970))
+        return NSFileProviderItemVersion(contentVersion: Data(ts.utf8), metadataVersion: Data("1".utf8))
+    }
+
+    var isDownloaded: Bool {
+        return false
     }
 }

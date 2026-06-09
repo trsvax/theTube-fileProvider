@@ -70,6 +70,11 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
                 let path = itemIdentifier.rawValue
                 let content = try await ProviderRouter.shared.fetchContent(path: path)
 
+                guard !content.isEmpty else {
+                    completionHandler(nil, nil, NSError(domain: NSCocoaErrorDomain, code: NSFileReadNoSuchFileError))
+                    return
+                }
+
                 // Write to a temporary file
                 let tempDir = FileManager.default.temporaryDirectory
                 let filename = path.split(separator: "/").last.map(String.init) ?? "file"
@@ -79,6 +84,7 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
                 let item = try await resolveItem(identifier: itemIdentifier)
                 completionHandler(tempFile, item, nil)
             } catch {
+                NSLog("TubeFS fetchContents error: %@", "\(error)")
                 completionHandler(nil, nil, error)
             }
             progress.completedUnitCount = 1
