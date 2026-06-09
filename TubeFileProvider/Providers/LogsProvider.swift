@@ -4,25 +4,53 @@ actor LogsProvider {
     static let shared = LogsProvider()
 
     func list(path: String) async throws -> [NSFileProviderItem] {
-        let result = try await TubeRequest.shared.requestArray("list/\(path)")
         let parentId = NSFileProviderItemIdentifier(path)
 
-        return result.compactMap { item in
-            guard let name = item["name"] as? String else { return nil }
-            let childPath = path.isEmpty ? name : "\(path)/\(name)"
-            let isFolder = (item["type"] as? String) == "folder"
-            return TubeItem(
-                identifier: NSFileProviderItemIdentifier(childPath),
-                parentIdentifier: parentId,
-                filename: name,
-                isFolder: isFolder,
-                size: item["size"] as? Int
-            )
+        if path == "logs" {
+            // List dates
+            let dates = try await TubeRequest.shared.request("aws/list-log-dates") as? [String] ?? []
+            return dates.map { date in
+                TubeItem(
+                    identifier: NSFileProviderItemIdentifier("logs/\(date)"),
+                    parentIdentifier: parentId,
+                    filename: date,
+                    isFolder: true
+                )
+            }
         }
+
+        // logs/{date} → list hours as .tsv files
+        let components = path.split(separator: "/")
+        if components.count == 2 {
+            let date = String(components[1])
+            let params: [String: Any] = ["date": date]
+            let hours = try await TubeRequest.shared.request("aws/list-log-hours", params: params) as? [String] ?? []
+            return hours.map { hour in
+                TubeItem(
+                    identifier: NSFileProviderItemIdentifier("logs/\(date)/\(hour).tsv"),
+                    parentIdentifier: parentId,
+                    filename: "\(hour).tsv",
+                    isFolder: false
+                )
+            }
+        }
+
+        return []
     }
 
     func fetch(path: String) async throws -> Data {
-        let result = try await TubeRequest.shared.requestString(path)
-        return Data(result.utf8)
+        // path = logs/{date}/{hour}.tsv
+        let components = path.split(separator: "/")
+        guard components.count == 3 else {
+            return Data()
+        }
+        let date = String(components[1])
+        let hour = String(components[2]).replacingOccurrences(of: ".tsv", with: "")
+        let params: [String: Any] = ["date": date, "hour": hour]
+        let result = try await TubeRequest.shared.request("aws/get-log-content", params: params)
+        if let str = result as? String {
+            return Data(str.utf8)
+        }
+        return Data()
     }
 }
