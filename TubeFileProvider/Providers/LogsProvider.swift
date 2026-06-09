@@ -47,10 +47,7 @@ actor LogsProvider {
         let date = String(components[1])
         let hour = String(components[2]).replacingOccurrences(of: ".tsv", with: "")
         let params: [String: Any] = ["date": date, "hour": hour]
-        let result = try await TubeRequest.shared.request("aws/get-log-content", params: params)
-        if let str = result as? String {
-            return Data(str.utf8)
-        }
-        return Data()
+        let result = try await TubeRequest.shared.requestString("aws/get-log-content", params: params)
+        return Data(result.utf8)
     }
 }
