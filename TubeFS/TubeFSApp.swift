@@ -1,4 +1,5 @@
 import SwiftUI
+import FileProvider
 
 @main
 struct TubeFSApp: App {
@@ -10,9 +11,10 @@ struct TubeFSApp: App {
 }
 
 struct ContentView: View {
-    @State private var status: String = "Checking credentials..."
+    @State private var status: String = "Checking..."
     @State private var hasToken = false
     @State private var hasSecret = false
+    @State private var domainStatus: String = ""
 
     var body: some View {
         VStack(spacing: 16) {
@@ -34,11 +36,51 @@ struct ContentView: View {
                 }
                 .buttonStyle(.borderedProminent)
             }
+
+            Divider()
+
+            Text(domainStatus)
+                .foregroundColor(.secondary)
+                .font(.caption)
         }
         .padding(40)
-        .frame(minWidth: 320, minHeight: 200)
-        .onAppear {
+        .frame(minWidth: 360, minHeight: 240)
+        .task {
             checkCredentials()
+            await registerDomain()
+        }
+    }
+
+    private func registerDomain() async {
+        // Ensure shared container exists
+        if let container = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.com.thetube.fs") {
+            try? FileManager.default.createDirectory(at: container, withIntermediateDirectories: true)
+            domainStatus = "Container: \(container.lastPathComponent)"
+        }
+
+        let domainId = NSFileProviderDomainIdentifier("com.thetube.fs.file-provider")
+
+        // Check if already registered
+        do {
+            let domains = try await NSFileProviderManager.domains()
+            if domains.contains(where: { $0.identifier == domainId }) {
+                domainStatus += "\nDomain already active ✓"
+                return
+            }
+        } catch {
+            // Continue to add
+        }
+
+        let domain = NSFileProviderDomain(
+            identifier: domainId,
+            displayName: "TubeFS"
+        )
+
+        do {
+            try await NSFileProviderManager.add(domain)
+            domainStatus += "\nDomain registered ✓"
+        } catch {
+            domainStatus += "\nDomain failed: \(error.localizedDescription)"
         }
     }
 
@@ -54,14 +96,12 @@ struct ContentView: View {
     }
 
     private func importCredentials() {
-        // Read from login keychain (no access group restriction)
         guard let token = readLoginKeychain(service: "share-token-mac", account: "thetube"),
               let secret = readLoginKeychain(service: "share-secret-mac", account: "thetube") else {
             status = "Not found in login keychain"
             return
         }
 
-        // Write to shared app group keychain
         let tokenOk = writeSharedKeychain(service: "share-token-mac", account: "thetube", value: token)
         let secretOk = writeSharedKeychain(service: "share-secret-mac", account: "thetube", value: secret)
 
@@ -112,7 +152,6 @@ struct ContentView: View {
     }
 
     private func writeSharedKeychain(service: String, account: String, value: String) -> Bool {
-        // Delete existing
         let deleteQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
@@ -121,7 +160,6 @@ struct ContentView: View {
         ]
         SecItemDelete(deleteQuery as CFDictionary)
 
-        // Add new
         let addQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
