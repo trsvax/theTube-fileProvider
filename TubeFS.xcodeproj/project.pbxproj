@@ -1,0 +1,560 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A1000001 /* TubeFSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001 /* TubeFSApp.swift */; };
+		A1000002 /* TubeRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000010 /* TubeRequest.swift */; };
+		A1000003 /* FileProviderExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000020 /* FileProviderExtension.swift */; };
+		A1000004 /* TubeItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000021 /* TubeItem.swift */; };
+		A1000005 /* TubeEnumerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000022 /* TubeEnumerator.swift */; };
+		A1000006 /* ProviderRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000023 /* ProviderRouter.swift */; };
+		A1000007 /* TubeRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000010 /* TubeRequest.swift */; };
+		A1000008 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000030 /* ShareViewController.swift */; };
+		A1000009 /* TubeRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000010 /* TubeRequest.swift */; };
+		A100000A /* TubeFileProvider.appex in Embed Extensions */ = {isa = PBXBuildFile; fileRef = A3000002 /* TubeFileProvider.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		A100000B /* TubeShare.appex in Embed Extensions */ = {isa = PBXBuildFile; fileRef = A3000003 /* TubeShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		A100000C /* AWSProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000040 /* AWSProvider.swift */; };
+		A100000D /* LogsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000041 /* LogsProvider.swift */; };
+		A100000E /* TubeStorageProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000042 /* TubeStorageProvider.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		A4000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A5000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A6000002;
+			remoteInfo = TubeFileProvider;
+		};
+		A4000002 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A5000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A6000003;
+			remoteInfo = TubeShare;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A7000001 /* Embed Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				A100000A /* TubeFileProvider.appex in Embed Extensions */,
+				A100000B /* TubeShare.appex in Embed Extensions */,
+			);
+			name = "Embed Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		A2000001 /* TubeFSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubeFSApp.swift; sourceTree = "<group>"; };
+		A2000002 /* TubeFS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TubeFS.entitlements; sourceTree = "<group>"; };
+		A2000010 /* TubeRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubeRequest.swift; sourceTree = "<group>"; };
+		A2000020 /* FileProviderExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileProviderExtension.swift; sourceTree = "<group>"; };
+		A2000021 /* TubeItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubeItem.swift; sourceTree = "<group>"; };
+		A2000022 /* TubeEnumerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubeEnumerator.swift; sourceTree = "<group>"; };
+		A2000023 /* ProviderRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderRouter.swift; sourceTree = "<group>"; };
+		A2000024 /* TubeFileProvider.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TubeFileProvider.entitlements; sourceTree = "<group>"; };
+		A2000025 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A2000030 /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
+		A2000031 /* TubeShare.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TubeShare.entitlements; sourceTree = "<group>"; };
+		A2000032 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A2000040 /* AWSProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AWSProvider.swift; sourceTree = "<group>"; };
+		A2000041 /* LogsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogsProvider.swift; sourceTree = "<group>"; };
+		A2000042 /* TubeStorageProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubeStorageProvider.swift; sourceTree = "<group>"; };
+		A3000001 /* TubeFS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TubeFS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A3000002 /* TubeFileProvider.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TubeFileProvider.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		A3000003 /* TubeShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TubeShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A8000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A8000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A8000003 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A9000001 = {
+			isa = PBXGroup;
+			children = (
+				A9000002 /* TubeFS */,
+				A9000003 /* Shared */,
+				A9000004 /* TubeFileProvider */,
+				A9000005 /* TubeShare */,
+				A9000006 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A9000002 /* TubeFS */ = {
+			isa = PBXGroup;
+			children = (
+				A2000001 /* TubeFSApp.swift */,
+				A2000002 /* TubeFS.entitlements */,
+			);
+			path = TubeFS;
+			sourceTree = "<group>";
+		};
+		A9000003 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				A2000010 /* TubeRequest.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		A9000004 /* TubeFileProvider */ = {
+			isa = PBXGroup;
+			children = (
+				A2000020 /* FileProviderExtension.swift */,
+				A2000021 /* TubeItem.swift */,
+				A2000022 /* TubeEnumerator.swift */,
+				A2000023 /* ProviderRouter.swift */,
+				A9000007 /* Providers */,
+				A2000024 /* TubeFileProvider.entitlements */,
+				A2000025 /* Info.plist */,
+			);
+			path = TubeFileProvider;
+			sourceTree = "<group>";
+		};
+		A9000005 /* TubeShare */ = {
+			isa = PBXGroup;
+			children = (
+				A2000030 /* ShareViewController.swift */,
+				A2000031 /* TubeShare.entitlements */,
+				A2000032 /* Info.plist */,
+			);
+			path = TubeShare;
+			sourceTree = "<group>";
+		};
+		A9000006 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A3000001 /* TubeFS.app */,
+				A3000002 /* TubeFileProvider.appex */,
+				A3000003 /* TubeShare.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A9000007 /* Providers */ = {
+			isa = PBXGroup;
+			children = (
+				A2000040 /* AWSProvider.swift */,
+				A2000041 /* LogsProvider.swift */,
+				A2000042 /* TubeStorageProvider.swift */,
+			);
+			path = Providers;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A6000001 /* TubeFS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AB000001 /* Build configuration list for PBXNativeTarget "TubeFS" */;
+			buildPhases = (
+				AA000001 /* Sources */,
+				A8000001 /* Frameworks */,
+				A7000001 /* Embed Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A4000003 /* PBXTargetDependency */,
+				A4000004 /* PBXTargetDependency */,
+			);
+			name = TubeFS;
+			productName = TubeFS;
+			productReference = A3000001 /* TubeFS.app */;
+			productType = "com.apple.product-type.application";
+		};
+		A6000002 /* TubeFileProvider */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AB000002 /* Build configuration list for PBXNativeTarget "TubeFileProvider" */;
+			buildPhases = (
+				AA000002 /* Sources */,
+				A8000002 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TubeFileProvider;
+			productName = TubeFileProvider;
+			productReference = A3000002 /* TubeFileProvider.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		A6000003 /* TubeShare */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AB000003 /* Build configuration list for PBXNativeTarget "TubeShare" */;
+			buildPhases = (
+				AA000003 /* Sources */,
+				A8000003 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TubeShare;
+			productName = TubeShare;
+			productReference = A3000003 /* TubeShare.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A5000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1540;
+				LastUpgradeCheck = 1540;
+				TargetAttributes = {
+					A6000001 = {
+						CreatedOnToolsVersion = 15.4;
+					};
+					A6000002 = {
+						CreatedOnToolsVersion = 15.4;
+					};
+					A6000003 = {
+						CreatedOnToolsVersion = 15.4;
+					};
+				};
+			};
+			buildConfigurationList = AB000004 /* Build configuration list for PBXProject "TubeFS" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A9000001;
+			productRefGroup = A9000006 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A6000001 /* TubeFS */,
+				A6000002 /* TubeFileProvider */,
+				A6000003 /* TubeShare */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AA000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000001 /* TubeFSApp.swift in Sources */,
+				A1000002 /* TubeRequest.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000003 /* FileProviderExtension.swift in Sources */,
+				A1000004 /* TubeItem.swift in Sources */,
+				A1000005 /* TubeEnumerator.swift in Sources */,
+				A1000006 /* ProviderRouter.swift in Sources */,
+				A1000007 /* TubeRequest.swift in Sources */,
+				A100000C /* AWSProvider.swift in Sources */,
+				A100000D /* LogsProvider.swift in Sources */,
+				A100000E /* TubeStorageProvider.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA000003 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000008 /* ShareViewController.swift in Sources */,
+				A1000009 /* TubeRequest.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A4000003 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A6000002 /* TubeFileProvider */;
+			targetProxy = A4000001 /* PBXContainerItemProxy */;
+		};
+		A4000004 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A6000003 /* TubeShare */;
+			targetProxy = A4000002 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		AC000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		AC000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		AC000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = TubeFS/TubeFS.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YRM5F8TW88;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = TubeFS;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.thetube.fs;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = "macosx iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AC000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = TubeFS/TubeFS.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YRM5F8TW88;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = TubeFS;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.thetube.fs;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = "macosx iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		AC000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = TubeFileProvider/TubeFileProvider.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YRM5F8TW88;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TubeFileProvider/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TubeFileProvider;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.thetube.fs.file-provider";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "macosx iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AC000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = TubeFileProvider/TubeFileProvider.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YRM5F8TW88;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TubeFileProvider/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TubeFileProvider;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.thetube.fs.file-provider";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "macosx iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		AC000007 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = TubeShare/TubeShare.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YRM5F8TW88;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TubeShare/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Tube;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.thetube.fs.share;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "macosx iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AC000008 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = TubeShare/TubeShare.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YRM5F8TW88;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TubeShare/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Tube;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.thetube.fs.share;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "macosx iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		AB000001 /* Build configuration list for PBXNativeTarget "TubeFS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AC000003 /* Debug */,
+				AC000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AB000002 /* Build configuration list for PBXNativeTarget "TubeFileProvider" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AC000005 /* Debug */,
+				AC000006 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AB000003 /* Build configuration list for PBXNativeTarget "TubeShare" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AC000007 /* Debug */,
+				AC000008 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AB000004 /* Build configuration list for PBXProject "TubeFS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AC000001 /* Debug */,
+				AC000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A5000001 /* Project object */;
+}
