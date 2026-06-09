@@ -60,27 +60,27 @@ struct ContentView: View {
 
         let domainId = NSFileProviderDomainIdentifier("com.thetube.fs.file-provider")
 
-        // Check if already registered
-        do {
-            let domains = try await NSFileProviderManager.domains()
-            if domains.contains(where: { $0.identifier == domainId }) {
-                domainStatus += "\nDomain already active ✓"
-                return
-            }
-        } catch {
-            // Continue to add
-        }
-
         let domain = NSFileProviderDomain(
             identifier: domainId,
             displayName: "TubeFS"
         )
 
         do {
-            try await NSFileProviderManager.add(domain)
-            domainStatus += "\nDomain registered ✓"
+            // Ensure domain exists
+            let existing = try await NSFileProviderManager.domains()
+            if !existing.contains(where: { $0.identifier == domainId }) {
+                try await NSFileProviderManager.add(domain)
+            }
+
+            // Force mount by requesting the visible URL
+            if let manager = NSFileProviderManager(for: domain) {
+                let url = try await manager.getUserVisibleURL(for: .rootContainer)
+                domainStatus += "\nMounted at: \(url.lastPathComponent) ✓"
+            } else {
+                domainStatus += "\nNo manager for domain"
+            }
         } catch {
-            domainStatus += "\nDomain failed: \(error.localizedDescription)"
+            domainStatus += "\nFailed: \(error.localizedDescription)"
         }
     }
 
