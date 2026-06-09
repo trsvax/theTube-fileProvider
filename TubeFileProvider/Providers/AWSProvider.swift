@@ -109,7 +109,16 @@ actor AWSProvider {
             }
         }
 
-        let data = try JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys])
+        let data: Data
+        if let dict = result as? [String: Any] {
+            data = try JSONSerialization.data(withJSONObject: dict, options: [.prettyPrinted, .sortedKeys])
+        } else if let arr = result as? [Any] {
+            data = try JSONSerialization.data(withJSONObject: arr, options: [.prettyPrinted, .sortedKeys])
+        } else if let str = result as? String {
+            data = Data(str.utf8)
+        } else {
+            data = Data("null".utf8)
+        }
         return data
     }
 }
