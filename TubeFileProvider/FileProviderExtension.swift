@@ -1,6 +1,7 @@
 import FileProvider
 import UniformTypeIdentifiers
 
+@objc(FileProviderExtension)
 class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
 
     let domain: NSFileProviderDomain
@@ -8,6 +9,7 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
     required init(domain: NSFileProviderDomain) {
         self.domain = domain
         super.init()
+        NSLog("TubeFileProvider: init with domain %@", domain.identifier.rawValue)
     }
     func item(for identifier: NSFileProviderItemIdentifier,
               request: NSFileProviderRequest,

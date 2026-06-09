@@ -422,6 +422,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = YRM5F8TW88;
+				EXTENSIONKIT_EXTENSION_POINT_IDENTIFIER = "com.apple.fileprovider-nonui";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TubeFileProvider/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = TubeFileProvider;
@@ -447,6 +448,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = YRM5F8TW88;
+				EXTENSIONKIT_EXTENSION_POINT_IDENTIFIER = "com.apple.fileprovider-nonui";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TubeFileProvider/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = TubeFileProvider;

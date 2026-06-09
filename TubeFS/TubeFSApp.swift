@@ -66,11 +66,18 @@ struct ContentView: View {
         )
 
         do {
-            // Ensure domain exists
+            // Remove ALL existing domains for our provider (clears stale state)
             let existing = try await NSFileProviderManager.domains()
-            if !existing.contains(where: { $0.identifier == domainId }) {
-                try await NSFileProviderManager.add(domain)
+            for d in existing {
+                let id = d.identifier.rawValue
+                if id.contains("thetube") || id.contains("file-provider") {
+                    try? await NSFileProviderManager.remove(d)
+                    domainStatus += "\nRemoved stale: \(id.prefix(20))"
+                }
             }
+
+            // Add fresh with the replicated extension initializer
+            try await NSFileProviderManager.add(domain)
 
             // Force mount by requesting the visible URL
             if let manager = NSFileProviderManager(for: domain) {
