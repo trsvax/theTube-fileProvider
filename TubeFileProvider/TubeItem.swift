@@ -50,12 +50,13 @@ class TubeItem: NSObject, NSFileProviderItem {
     }
 
     var itemVersion: NSFileProviderItemVersion {
-        // Unique version per access — forces re-fetch since we don't cache
-        let ts = String(Int(Date().timeIntervalSince1970))
-        return NSFileProviderItemVersion(contentVersion: Data(ts.utf8), metadataVersion: Data("1".utf8))
+        // Use a time-based version that changes every minute — invalidates stale cache
+        let ts = String(Int(Date().timeIntervalSince1970 / 60))
+        return NSFileProviderItemVersion(contentVersion: Data(ts.utf8), metadataVersion: Data(ts.utf8))
     }
 
     var isDownloaded: Bool {
+        // Let the system manage download state
         return false
     }
 }

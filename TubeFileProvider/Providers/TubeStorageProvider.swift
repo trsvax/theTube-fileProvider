@@ -62,11 +62,19 @@ actor TubeStorageProvider {
         // Convert filesystem path to S3 key
         let key = path  // tube/{app}/{action}/{file} maps directly
         let params: [String: Any] = ["key": key]
-        let content = try await TubeRequest.shared.request("aws/read-tube-file", params: params)
-        if let str = content as? String {
+        let result = try await TubeRequest.shared.request("aws/read-tube-file", params: params)
+
+        if let str = result as? String {
             return Data(str.utf8)
         }
-        let data = try JSONSerialization.data(withJSONObject: content, options: [.prettyPrinted])
-        return data
+        if let dict = result as? [String: Any] {
+            return try JSONSerialization.data(withJSONObject: dict, options: [.prettyPrinted, .sortedKeys])
+        }
+        if let arr = result as? [Any] {
+            return try JSONSerialization.data(withJSONObject: arr, options: [.prettyPrinted, .sortedKeys])
+        }
+
+        NSLog("TubeFS read-tube-file: unexpected result type for key: %@", key)
+        return Data()
     }
 }

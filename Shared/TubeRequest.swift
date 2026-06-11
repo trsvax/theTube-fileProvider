@@ -77,11 +77,12 @@ actor TubeRequest {
             throw TubeError.unexpected("Not an HTTP response")
         }
 
-        NSLog("TubeRequest: %@ → HTTP %d (%d bytes)", path, http.statusCode, data.count)
+        let preview = String(data: data.prefix(200), encoding: .utf8) ?? "(binary \(data.count) bytes)"
+        DebugLog.log("TubeRequest: \(path) → HTTP \(http.statusCode) (\(data.count) bytes): \(preview)")
 
         switch http.statusCode {
         case 200:
-            return try JSONSerialization.jsonObject(with: data)
+            return try JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed])
 
         case 202:
             let receipt = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]

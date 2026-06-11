@@ -21,6 +21,9 @@
 		A100000C /* AWSProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000040 /* AWSProvider.swift */; };
 		A100000D /* LogsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000041 /* LogsProvider.swift */; };
 		A100000E /* TubeStorageProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000042 /* TubeStorageProvider.swift */; };
+		A100000F /* DebugLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000011 /* DebugLog.swift */; };
+		A1000010 /* DebugLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000011 /* DebugLog.swift */; };
+		A1000011 /* DebugLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000011 /* DebugLog.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -59,6 +62,7 @@
 		A2000001 /* TubeFSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubeFSApp.swift; sourceTree = "<group>"; };
 		A2000002 /* TubeFS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TubeFS.entitlements; sourceTree = "<group>"; };
 		A2000010 /* TubeRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubeRequest.swift; sourceTree = "<group>"; };
+		A2000011 /* DebugLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugLog.swift; sourceTree = "<group>"; };
 		A2000020 /* FileProviderExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileProviderExtension.swift; sourceTree = "<group>"; };
 		A2000021 /* TubeItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubeItem.swift; sourceTree = "<group>"; };
 		A2000022 /* TubeEnumerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubeEnumerator.swift; sourceTree = "<group>"; };
@@ -125,6 +129,7 @@
 			isa = PBXGroup;
 			children = (
 				A2000010 /* TubeRequest.swift */,
+				A2000011 /* DebugLog.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -275,6 +280,7 @@
 			files = (
 				A1000001 /* TubeFSApp.swift in Sources */,
 				A1000002 /* TubeRequest.swift in Sources */,
+				A100000F /* DebugLog.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -287,6 +293,7 @@
 				A1000005 /* TubeEnumerator.swift in Sources */,
 				A1000006 /* ProviderRouter.swift in Sources */,
 				A1000007 /* TubeRequest.swift in Sources */,
+				A1000010 /* DebugLog.swift in Sources */,
 				A100000C /* AWSProvider.swift in Sources */,
 				A100000D /* LogsProvider.swift in Sources */,
 				A100000E /* TubeStorageProvider.swift in Sources */,
@@ -299,6 +306,7 @@
 			files = (
 				A1000008 /* ShareViewController.swift in Sources */,
 				A1000009 /* TubeRequest.swift in Sources */,
+				A1000011 /* DebugLog.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -30,7 +30,8 @@ actor LogsProvider {
                     identifier: NSFileProviderItemIdentifier("logs/\(date)/\(hour).tsv"),
                     parentIdentifier: parentId,
                     filename: "\(hour).tsv",
-                    isFolder: false
+                    isFolder: false,
+                    size: 4096  // Estimated — log files vary
                 )
             }
         }

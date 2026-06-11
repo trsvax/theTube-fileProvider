@@ -15,6 +15,7 @@ struct ContentView: View {
     @State private var hasToken = false
     @State private var hasSecret = false
     @State private var domainStatus: String = ""
+    @State private var debugOutput: String = ""
 
     var body: some View {
         VStack(spacing: 16) {
@@ -42,12 +43,28 @@ struct ContentView: View {
             Text(domainStatus)
                 .foregroundColor(.secondary)
                 .font(.caption)
+
+            Divider()
+
+            HStack {
+                Button("Refresh Log") { debugOutput = DebugLog.read() }
+                Button("Clear Log") { DebugLog.clear(); debugOutput = "" }
+            }
+
+            ScrollView {
+                Text(debugOutput)
+                    .font(.system(.caption, design: .monospaced))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .textSelection(.enabled)
+            }
+            .frame(maxHeight: 200)
         }
         .padding(40)
-        .frame(minWidth: 360, minHeight: 240)
+        .frame(minWidth: 400, minHeight: 440)
         .task {
             checkCredentials()
             await registerDomain()
+            debugOutput = DebugLog.read()
         }
     }
 

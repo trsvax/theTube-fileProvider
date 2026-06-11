@@ -28,12 +28,17 @@ class TubeEnumerator: NSObject, NSFileProviderEnumerator {
     }
 
     func enumerateChanges(for observer: NSFileProviderChangeObserver, from anchor: NSFileProviderSyncAnchor) {
-        // No change tracking — always fresh
-        observer.finishEnumeratingChanges(upTo: anchor, moreComing: false)
+        // Signal all content has changed by re-enumerating from scratch
+        observer.finishEnumeratingChanges(upTo: currentAnchor(), moreComing: false)
     }
 
     func currentSyncAnchor(completionHandler: @escaping (NSFileProviderSyncAnchor?) -> Void) {
-        // Static anchor — we don't track changes
-        completionHandler(NSFileProviderSyncAnchor(Data("1".utf8)))
+        completionHandler(currentAnchor())
+    }
+
+    private func currentAnchor() -> NSFileProviderSyncAnchor {
+        // Change anchor each time extension launches — forces re-enumeration
+        let ts = String(Int(Date().timeIntervalSince1970 / 60)) // changes every minute
+        return NSFileProviderSyncAnchor(Data(ts.utf8))
     }
 }

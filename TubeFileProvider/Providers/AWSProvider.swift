@@ -24,7 +24,7 @@ actor AWSProvider {
         if path == "aws/cloudfront" {
             return [
                 TubeItem(identifier: NSFileProviderItemIdentifier("aws/cloudfront/distribution.json"),
-                         parentIdentifier: parentId, filename: "distribution.json", isFolder: false),
+                         parentIdentifier: parentId, filename: "distribution.json", isFolder: false, size: 8192),
             ]
         }
 
@@ -36,7 +36,8 @@ actor AWSProvider {
                     identifier: NSFileProviderItemIdentifier("aws/lambda/\(name).json"),
                     parentIdentifier: parentId,
                     filename: "\(name).json",
-                    isFolder: false
+                    isFolder: false,
+                    size: 1024  // Estimated — actual size determined on fetch
                 )
             }
         }
@@ -56,20 +57,20 @@ actor AWSProvider {
         if path == "aws/cognito" {
             return [
                 TubeItem(identifier: NSFileProviderItemIdentifier("aws/cognito/pool.json"),
-                         parentIdentifier: parentId, filename: "pool.json", isFolder: false),
+                         parentIdentifier: parentId, filename: "pool.json", isFolder: false, size: 2048),
                 TubeItem(identifier: NSFileProviderItemIdentifier("aws/cognito/clients.json"),
-                         parentIdentifier: parentId, filename: "clients.json", isFolder: false),
+                         parentIdentifier: parentId, filename: "clients.json", isFolder: false, size: 2048),
                 TubeItem(identifier: NSFileProviderItemIdentifier("aws/cognito/groups.json"),
-                         parentIdentifier: parentId, filename: "groups.json", isFolder: false),
+                         parentIdentifier: parentId, filename: "groups.json", isFolder: false, size: 2048),
             ]
         }
 
         if path == "aws/iam" {
             return [
                 TubeItem(identifier: NSFileProviderItemIdentifier("aws/iam/roles.json"),
-                         parentIdentifier: parentId, filename: "roles.json", isFolder: false),
+                         parentIdentifier: parentId, filename: "roles.json", isFolder: false, size: 4096),
                 TubeItem(identifier: NSFileProviderItemIdentifier("aws/iam/users.json"),
-                         parentIdentifier: parentId, filename: "users.json", isFolder: false),
+                         parentIdentifier: parentId, filename: "users.json", isFolder: false, size: 2048),
             ]
         }
 

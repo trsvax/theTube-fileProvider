@@ -10,6 +10,12 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         self.domain = domain
         super.init()
         NSLog("TubeFileProvider: init with domain %@", domain.identifier.rawValue)
+
+        // Signal that all content may have changed — forces re-fetch of materialized files
+        if let manager = NSFileProviderManager(for: domain) {
+            manager.signalEnumerator(for: .workingSet) { _ in }
+            manager.signalEnumerator(for: .rootContainer) { _ in }
+        }
     }
     func item(for identifier: NSFileProviderItemIdentifier,
               request: NSFileProviderRequest,
@@ -68,23 +74,48 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         Task {
             do {
                 let path = itemIdentifier.rawValue
+                DebugLog.log("fetchContents: \(path)")
+
                 let content = try await ProviderRouter.shared.fetchContent(path: path)
+                DebugLog.log("fetchContents got \(content.count) bytes for: \(path)")
 
                 guard !content.isEmpty else {
+                    DebugLog.log("fetchContents: EMPTY for \(path)")
                     completionHandler(nil, nil, NSError(domain: NSCocoaErrorDomain, code: NSFileReadNoSuchFileError))
+                    progress.completedUnitCount = 1
                     return
                 }
 
-                // Write to a temporary file
+                // Write to a unique temporary file — use UUID to avoid collisions
                 let tempDir = FileManager.default.temporaryDirectory
-                let filename = path.split(separator: "/").last.map(String.init) ?? "file"
-                let tempFile = tempDir.appendingPathComponent(filename)
-                try content.write(to: tempFile)
+                    .appendingPathComponent("TubeFS", isDirectory: true)
+                try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
 
-                let item = try await resolveItem(identifier: itemIdentifier)
+                let filename = path.split(separator: "/").last.map(String.init) ?? "file"
+                let uniqueName = "\(UUID().uuidString)_\(filename)"
+                let tempFile = tempDir.appendingPathComponent(uniqueName)
+
+                try content.write(to: tempFile)
+                DebugLog.log("fetchContents wrote \(content.count) bytes to: \(tempFile.path)")
+
+                // Return item matching what was enumerated
+                let components = path.split(separator: "/")
+                let name = String(components.last ?? "")
+                let parentPath = components.dropLast().joined(separator: "/")
+                let parentId = parentPath.isEmpty
+                    ? NSFileProviderItemIdentifier.rootContainer
+                    : NSFileProviderItemIdentifier(parentPath)
+
+                let item = TubeItem(
+                    identifier: itemIdentifier,
+                    parentIdentifier: parentId,
+                    filename: name,
+                    isFolder: false,
+                    size: content.count
+                )
                 completionHandler(tempFile, item, nil)
             } catch {
-                NSLog("TubeFS fetchContents error: %@", "\(error)")
+                DebugLog.log("fetchContents ERROR for \(itemIdentifier.rawValue): \(error)")
                 completionHandler(nil, nil, error)
             }
             progress.completedUnitCount = 1
