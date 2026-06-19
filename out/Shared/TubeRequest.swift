@@ -5,70 +5,66 @@ actor TubeRequest {
     static let shared = TubeRequest()
 
     private let baseURL: URL
-    private var token: String?
-    private var secret: String?
+    private let deviceId: String
+    private var signingKey: P256.Signing.PrivateKey?
 
     private let pollInterval: TimeInterval = 0.2
     private let pollTimeout: TimeInterval = 10.0
 
-    init(baseURL: URL = URL(string: "https://thetube.today/tube")!) {
+    init(baseURL: URL = URL(string: "https://thetube.today/tube")!,
+         deviceId: String = DeviceIdentifier.current) {
         self.baseURL = baseURL
-    }
-    private func loadAuth() throws {
-        if token != nil && secret != nil { return }
-
-        token = try keychainRead(service: "share-token-mac", account: "thetube")
-        secret = try keychainRead(service: "share-secret-mac", account: "thetube")
+        self.deviceId = deviceId
     }
 
-    private func keychainRead(service: String, account: String) throws -> String {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: account,
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne,
-        ]
+    // MARK: - Key loading
 
-        var result: AnyObject?
-        let status = SecItemCopyMatching(query as CFDictionary, &result)
+    private func loadKey() throws {
+        if signingKey != nil { return }
+        signingKey = try KeyManager.loadPrivateKey()
+    }
 
-        guard status == errSecSuccess, let data = result as? Data,
-              let value = String(data: data, encoding: .utf8) else {
-            throw TubeError.noAuth("Keychain read failed: \(service)")
+    // MARK: - Signing
+
+    private func sign(method: String, path: String, body: Data) throws -> (timestamp: String, signature: String) {
+        guard let key = signingKey else {
+            throw TubeError.noAuth("No signing key loaded")
         }
 
-        return value
-    }
-    private func computeTimeHash(_ secret: String) -> (timestamp: String, pass: String) {
         let timestamp = String(Int(Date().timeIntervalSince1970))
-        let input = Data((secret + timestamp).utf8)
-        let hash = SHA256.hash(data: input)
-        let pass = hash.map { String(format: "%02x", $0) }.joined()
-        return (timestamp, pass)
-    }
-    func request(_ path: String, params: [String: Any] = [:]) async throws -> Any {
-        try loadAuth()
+        let bodyHash = SHA256.hash(data: body).map { String(format: "%02x", $0) }.joined()
+        let canonical = "\(method)\n\(path)\n\(timestamp)\n\(bodyHash)"
+        let canonicalData = Data(canonical.utf8)
 
-        guard let token, let secret else {
-            throw TubeError.noAuth("No token or secret loaded")
+        let signature = try key.signature(for: canonicalData)
+        let signatureBase64 = signature.derRepresentation.base64EncodedString()
+
+        return (timestamp, signatureBase64)
+    }
+
+    // MARK: - Request
+
+    func request(_ path: String, params: [String: Any] = [:]) async throws -> Any {
+        try loadKey()
+
+        let url = baseURL.appendingPathComponent(path)
+        let body: Data
+        if !params.isEmpty {
+            body = try JSONSerialization.data(withJSONObject: params)
+        } else {
+            body = Data("{}".utf8)
         }
 
-        let (timestamp, pass) = computeTimeHash(secret)
-        let url = baseURL.appendingPathComponent(path)
+        let fullPath = "/tube/\(path)"
+        let (timestamp, signature) = try sign(method: "POST", path: fullPath, body: body)
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue(pass, forHTTPHeaderField: "X-Pass")
+        request.setValue(deviceId, forHTTPHeaderField: "X-Device-Id")
         request.setValue(timestamp, forHTTPHeaderField: "X-Timestamp")
+        request.setValue(signature, forHTTPHeaderField: "X-Signature")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        if !params.isEmpty {
-            request.httpBody = try JSONSerialization.data(withJSONObject: params)
-        } else {
-            request.httpBody = Data("{}".utf8)
-        }
+        request.httpBody = body
 
         let (data, response) = try await URLSession.shared.data(for: request)
 
@@ -76,9 +72,12 @@ actor TubeRequest {
             throw TubeError.unexpected("Not an HTTP response")
         }
 
+        let preview = String(data: data.prefix(200), encoding: .utf8) ?? "(binary \(data.count) bytes)"
+        DebugLog.log("TubeRequest: \(path) → HTTP \(http.statusCode) (\(data.count) bytes): \(preview)")
+
         switch http.statusCode {
         case 200:
-            return try JSONSerialization.jsonObject(with: data)
+            return try JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed])
 
         case 202:
             let receipt = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
@@ -90,9 +89,13 @@ actor TubeRequest {
             throw TubeError.authFailed(reason)
 
         default:
+            NSLog("TubeRequest: unexpected response: %@", String(data: data.prefix(200), encoding: .utf8) ?? "binary")
             throw TubeError.unexpected("HTTP \(http.statusCode)")
         }
     }
+
+    // MARK: - Polling
+
     private func pollResult(receipt: [String: Any]) async throws -> Any {
         guard let resultURLString = receipt["result"] as? String,
               let resultURL = URL(string: resultURLString) else {
@@ -119,28 +122,30 @@ actor TubeRequest {
 
         throw TubeError.timeout("Timed out waiting for result")
     }
-    func fire(_ path: String, params: [String: Any] = [:]) async throws -> [String: Any] {
-        try loadAuth()
 
-        guard let token, let secret else {
-            throw TubeError.noAuth("No token or secret loaded")
+    // MARK: - Fire and forget
+
+    func fire(_ path: String, params: [String: Any] = [:]) async throws -> [String: Any] {
+        try loadKey()
+
+        let url = baseURL.appendingPathComponent(path)
+        let body: Data
+        if !params.isEmpty {
+            body = try JSONSerialization.data(withJSONObject: params)
+        } else {
+            body = Data("{}".utf8)
         }
 
-        let (timestamp, pass) = computeTimeHash(secret)
-        let url = baseURL.appendingPathComponent(path)
+        let fullPath = "/tube/\(path)"
+        let (timestamp, signature) = try sign(method: "POST", path: fullPath, body: body)
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue(pass, forHTTPHeaderField: "X-Pass")
+        request.setValue(deviceId, forHTTPHeaderField: "X-Device-Id")
         request.setValue(timestamp, forHTTPHeaderField: "X-Timestamp")
+        request.setValue(signature, forHTTPHeaderField: "X-Signature")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        if !params.isEmpty {
-            request.httpBody = try JSONSerialization.data(withJSONObject: params)
-        } else {
-            request.httpBody = Data("{}".utf8)
-        }
+        request.httpBody = body
 
         let (data, response) = try await URLSession.shared.data(for: request)
 
@@ -150,6 +155,9 @@ actor TubeRequest {
 
         return try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
     }
+
+    // MARK: - Errors
+
     enum TubeError: Error {
         case noAuth(String)
         case authFailed(String)
@@ -157,6 +165,9 @@ actor TubeRequest {
         case unexpected(String)
     }
 }
+
+// MARK: - Convenience
+
 extension TubeRequest {
     func requestArray(_ path: String, params: [String: Any] = [:]) async throws -> [[String: Any]] {
         let result = try await request(path, params: params)

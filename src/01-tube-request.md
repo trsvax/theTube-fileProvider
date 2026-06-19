@@ -19,15 +19,15 @@ deploy:
 
 The Node `tubeRequest.js` shells out to `security find-generic-password` and spawns Python for URL encoding. It works, but it's a hack — child processes for auth, string parsing for crypto.
 
-The Swift version uses what the platform gives you: `SecItemCopyMatching` for Keychain, `CryptoKit` for SHA256, `URLSession` for HTTP. One process, no subshells, Touch ID prompt handled by the OS.
+The Swift version uses what the platform gives you: P-256 key pair in Keychain (protected by access control / Touch ID), `CryptoKit` for signing, `URLSession` for HTTP. One process, no subshells, no shared secrets.
 
-The protocol is identical:
+The protocol:
 
 ```
 POST https://thetube.today/tube/{path}
-Authorization: Bearer {jwt}
-X-Pass: SHA256(secret + timestamp)
+X-Device-Id: {device-id}
 X-Timestamp: {unix seconds}
+X-Signature: base64(sign(private_key, "POST\n/tube/{path}\n{timestamp}\n{body_sha256}"))
 Content-Type: application/json
 ```
 
@@ -41,91 +41,99 @@ actor TubeRequest {
     static let shared = TubeRequest()
 
     private let baseURL: URL
-    private var token: String?
-    private var secret: String?
+    private let deviceId: String
+    private var privateKey: P256.Signing.PrivateKey?
 
     private let pollInterval: TimeInterval = 0.2
     private let pollTimeout: TimeInterval = 10.0
 
-    init(baseURL: URL = URL(string: "https://thetube.today/tube")!) {
+    init(baseURL: URL = URL(string: "https://thetube.today/tube")!,
+         deviceId: String = "mac") {
         self.baseURL = baseURL
+        self.deviceId = deviceId
     }
 ```
 
 ## Keychain
 
-Read the JWT and secret from Keychain. Same service/account names as the bash script and Node client. The Keychain access triggers Touch ID / Face ID automatically — no `LAContext` needed for simple password items with access control.
+Read the P-256 private key from Keychain. The key is stored with access control requiring biometric authentication — Touch ID / Face ID is triggered automatically by the OS when the key is accessed.
 
 ```swift # src Shared/TubeRequest.swift
-    private func loadAuth() throws {
-        if token != nil && secret != nil { return }
+    private func loadKey() throws {
+        if privateKey != nil { return }
 
-        token = try keychainRead(service: "share-token-mac", account: "thetube")
-        secret = try keychainRead(service: "share-secret-mac", account: "thetube")
-    }
-
-    private func keychainRead(service: String, account: String) throws -> String {
         let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: account,
-            kSecReturnData as String: true,
+            kSecClass as String: kSecClassKey,
+            kSecAttrApplicationTag as String: "today.thetube.signing-key".data(using: .utf8)!,
+            kSecAttrKeyType as String: kSecAttrKeyTypeECSECPrimeRandom,
+            kSecReturnRef as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne,
         ]
 
         var result: AnyObject?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
 
-        guard status == errSecSuccess, let data = result as? Data,
-              let value = String(data: data, encoding: .utf8) else {
-            throw TubeError.noAuth("Keychain read failed: \(service)")
+        guard status == errSecSuccess, let secKey = result else {
+            throw TubeError.noAuth("Signing key not found in Keychain")
         }
 
-        return value
+        // Convert SecKey to CryptoKit P256 key
+        var error: Unmanaged<CFError>?
+        guard let keyData = SecKeyCopyExternalRepresentation(secKey as! SecKey, &error) as Data? else {
+            throw TubeError.noAuth("Failed to export key: \(error.debugDescription)")
+        }
+
+        privateKey = try P256.Signing.PrivateKey(x963Representation: keyData)
     }
 ```
 
-## Time-hash
+## Signing
 
-Same as the bash and Node versions: `SHA256(secret + timestamp)` as hex. The timestamp is Unix seconds. The server accepts ±30 seconds.
+Sign the canonical request string: `method\npath\ntimestamp\nbody_sha256`. Returns the signature as base64 and the timestamp used.
 
 ```swift # src Shared/TubeRequest.swift
-    private func computeTimeHash(_ secret: String) -> (timestamp: String, pass: String) {
+    private func sign(method: String, path: String, body: Data) throws -> (timestamp: String, signature: String) {
+        guard let key = privateKey else {
+            throw TubeError.noAuth("No signing key loaded")
+        }
+
         let timestamp = String(Int(Date().timeIntervalSince1970))
-        let input = Data((secret + timestamp).utf8)
-        let hash = SHA256.hash(data: input)
-        let pass = hash.map { String(format: "%02x", $0) }.joined()
-        return (timestamp, pass)
+        let bodyHash = SHA256.hash(data: body).map { String(format: "%02x", $0) }.joined()
+        let canonical = "\(method)\n\(path)\n\(timestamp)\n\(bodyHash)"
+        let canonicalData = Data(canonical.utf8)
+
+        let signature = try key.signature(for: canonicalData)
+        let signatureBase64 = signature.derRepresentation.base64EncodedString()
+
+        return (timestamp, signatureBase64)
     }
 ```
 
 ## The request
 
-POST to `/tube/{path}` with auth headers and JSON body. Check status code: 200 = done, 202 = poll, 403 = failed.
+POST to `/tube/{path}` with signature headers and JSON body. Check status code: 200 = done, 202 = poll, 403 = failed.
 
 ```swift # src Shared/TubeRequest.swift
     func request(_ path: String, params: [String: Any] = [:]) async throws -> Any {
-        try loadAuth()
+        try loadKey()
 
-        guard let token, let secret else {
-            throw TubeError.noAuth("No token or secret loaded")
+        let url = baseURL.appendingPathComponent(path)
+        let body: Data
+        if !params.isEmpty {
+            body = try JSONSerialization.data(withJSONObject: params)
+        } else {
+            body = Data("{}".utf8)
         }
 
-        let (timestamp, pass) = computeTimeHash(secret)
-        let url = baseURL.appendingPathComponent(path)
+        let (timestamp, signature) = try sign(method: "POST", path: "/tube/\(path)", body: body)
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue(pass, forHTTPHeaderField: "X-Pass")
+        request.setValue(deviceId, forHTTPHeaderField: "X-Device-Id")
         request.setValue(timestamp, forHTTPHeaderField: "X-Timestamp")
+        request.setValue(signature, forHTTPHeaderField: "X-Signature")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        if !params.isEmpty {
-            request.httpBody = try JSONSerialization.data(withJSONObject: params)
-        } else {
-            request.httpBody = Data("{}".utf8)
-        }
+        request.httpBody = body
 
         let (data, response) = try await URLSession.shared.data(for: request)
 
@@ -191,27 +199,25 @@ For captures and other write-and-walk-away calls. Returns the receipt without po
 
 ```swift # src Shared/TubeRequest.swift
     func fire(_ path: String, params: [String: Any] = [:]) async throws -> [String: Any] {
-        try loadAuth()
+        try loadKey()
 
-        guard let token, let secret else {
-            throw TubeError.noAuth("No token or secret loaded")
+        let url = baseURL.appendingPathComponent(path)
+        let body: Data
+        if !params.isEmpty {
+            body = try JSONSerialization.data(withJSONObject: params)
+        } else {
+            body = Data("{}".utf8)
         }
 
-        let (timestamp, pass) = computeTimeHash(secret)
-        let url = baseURL.appendingPathComponent(path)
+        let (timestamp, signature) = try sign(method: "POST", path: "/tube/\(path)", body: body)
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue(pass, forHTTPHeaderField: "X-Pass")
+        request.setValue(deviceId, forHTTPHeaderField: "X-Device-Id")
         request.setValue(timestamp, forHTTPHeaderField: "X-Timestamp")
+        request.setValue(signature, forHTTPHeaderField: "X-Signature")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        if !params.isEmpty {
-            request.httpBody = try JSONSerialization.data(withJSONObject: params)
-        } else {
-            request.httpBody = Data("{}".utf8)
-        }
+        request.httpBody = body
 
         let (data, response) = try await URLSession.shared.data(for: request)
 
@@ -265,4 +271,4 @@ extension TubeRequest {
 [journey]:
 prev: tubeRequest
 next: file-provider
-Port of tubeRequest.js to Swift. Same protocol, same Keychain entries, same time-hash. But native: CryptoKit instead of spawning shasum, SecItemCopyMatching instead of security CLI, URLSession instead of fetch. The actor model gives thread safety for free — multiple FileProvider enumerators can call TubeRequest.shared concurrently without races. Touch ID comes from Keychain access control, not explicit LAContext — the OS prompts when needed.
+Port of tubeRequest.js to Swift. Same protocol, same Keychain, but P-256 signing instead of shared secrets. CryptoKit signs the canonical request string, Keychain access control triggers Touch ID. No JWT, no time-hash — just a private key that never leaves the device. The actor model gives thread safety for free — multiple FileProvider enumerators can call TubeRequest.shared concurrently without races. On iOS, the private key lives in the Secure Enclave. On Mac, it's a Keychain-protected P-256 key with biometric access control.

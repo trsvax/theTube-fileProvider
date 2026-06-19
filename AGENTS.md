@@ -33,14 +33,15 @@ Every provider implements:
 - `list(path) → [FileProviderItem]` — enumerate children
 - `read(path) → Data` — fetch file contents
 
-Providers call `TubeRequest` which POSTs to `https://thetube.today/tube/{route}` with Keychain-stored JWT + CryptoKit time-hash.
+Providers call `TubeRequest` which POSTs to `https://thetube.today/tube/{route}` with P-256 signature from device key.
 
 ## Auth
 
-- JWT and secret in Keychain (shared app group)
-- Touch ID / Face ID via `LAContext` on first access
-- Time-hash: `SHA256(secret + timestamp)` via `CryptoKit`
-- No shell commands, no external processes
+- P-256 private key in Keychain (shared app group), protected by access control
+- Touch ID / Face ID triggered by Keychain access control on the private key
+- Signs: `method + path + timestamp + body_hash` → `X-Signature` header
+- `X-Device-Id` + `X-Timestamp` headers identify and timestamp the request
+- No shared secrets, no tokens, no shell commands
 
 ## Related repos
 
@@ -59,4 +60,4 @@ Open `TubeFS.xcodeproj` in Xcode. Build the container app target — the extensi
 - Structured concurrency (actors for shared state)
 - Each provider is a standalone struct conforming to `TubeProvider` protocol
 
-_Last updated: 2026-06-05_
+_Last updated: 2026-06-19_

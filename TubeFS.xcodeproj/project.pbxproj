@@ -24,6 +24,12 @@
 		A100000F /* DebugLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000011 /* DebugLog.swift */; };
 		A1000010 /* DebugLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000011 /* DebugLog.swift */; };
 		A1000011 /* DebugLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000011 /* DebugLog.swift */; };
+		A1000012 /* KeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000012 /* KeyManager.swift */; };
+		A1000013 /* KeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000012 /* KeyManager.swift */; };
+		A1000014 /* KeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000012 /* KeyManager.swift */; };
+		A1000015 /* DeviceIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000013 /* DeviceIdentifier.swift */; };
+		A1000016 /* DeviceIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000013 /* DeviceIdentifier.swift */; };
+		A1000017 /* DeviceIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000013 /* DeviceIdentifier.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,6 +69,8 @@
 		A2000002 /* TubeFS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TubeFS.entitlements; sourceTree = "<group>"; };
 		A2000010 /* TubeRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubeRequest.swift; sourceTree = "<group>"; };
 		A2000011 /* DebugLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugLog.swift; sourceTree = "<group>"; };
+		A2000012 /* KeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyManager.swift; sourceTree = "<group>"; };
+		A2000013 /* DeviceIdentifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceIdentifier.swift; sourceTree = "<group>"; };
 		A2000020 /* FileProviderExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileProviderExtension.swift; sourceTree = "<group>"; };
 		A2000021 /* TubeItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubeItem.swift; sourceTree = "<group>"; };
 		A2000022 /* TubeEnumerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubeEnumerator.swift; sourceTree = "<group>"; };
@@ -130,6 +138,8 @@
 			children = (
 				A2000010 /* TubeRequest.swift */,
 				A2000011 /* DebugLog.swift */,
+				A2000012 /* KeyManager.swift */,
+				A2000013 /* DeviceIdentifier.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -281,6 +291,8 @@
 				A1000001 /* TubeFSApp.swift in Sources */,
 				A1000002 /* TubeRequest.swift in Sources */,
 				A100000F /* DebugLog.swift in Sources */,
+				A1000012 /* KeyManager.swift in Sources */,
+				A1000015 /* DeviceIdentifier.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -297,6 +309,8 @@
 				A100000C /* AWSProvider.swift in Sources */,
 				A100000D /* LogsProvider.swift in Sources */,
 				A100000E /* TubeStorageProvider.swift in Sources */,
+				A1000013 /* KeyManager.swift in Sources */,
+				A1000016 /* DeviceIdentifier.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -307,6 +321,8 @@
 				A1000008 /* ShareViewController.swift in Sources */,
 				A1000009 /* TubeRequest.swift in Sources */,
 				A1000011 /* DebugLog.swift in Sources */,
+				A1000014 /* KeyManager.swift in Sources */,
+				A1000017 /* DeviceIdentifier.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -11,11 +11,12 @@ struct TubeFSApp: App {
 }
 
 struct ContentView: View {
-    @State private var status: String = "Checking..."
-    @State private var hasToken = false
-    @State private var hasSecret = false
+    @State private var hasKey = false
+    @State private var deviceId: String = ""
+    @State private var publicKeyPEM: String = ""
     @State private var domainStatus: String = ""
     @State private var debugOutput: String = ""
+    @State private var showingKey = false
 
     var body: some View {
         VStack(spacing: 16) {
@@ -25,17 +26,47 @@ struct ContentView: View {
             Text("TubeFS")
                 .font(.title)
 
-            if hasToken && hasSecret {
-                Label("Credentials ready", systemImage: "checkmark.circle.fill")
+            if hasKey {
+                Label("Signing key ready", systemImage: "checkmark.circle.fill")
                     .foregroundColor(.green)
+                Text("Device: \(deviceId)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+
+                HStack {
+                    Button("Show Public Key") { showingKey.toggle() }
+                    Button("Regenerate Key") { generateKey() }
+                        .foregroundColor(.red)
+                }
+
+                if showingKey {
+                    ScrollView {
+                        Text(publicKeyPEM)
+                            .font(.system(.caption2, design: .monospaced))
+                            .textSelection(.enabled)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .frame(maxHeight: 100)
+                    .padding(8)
+                    .background(Color.secondary.opacity(0.1))
+                    .cornerRadius(6)
+
+                    Button("Copy to Clipboard") {
+                        #if os(macOS)
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(publicKeyPEM, forType: .string)
+                        #else
+                        UIPasteboard.general.string = publicKeyPEM
+                        #endif
+                    }
+                    .font(.caption)
+                }
             } else {
-                Label(status, systemImage: "exclamationmark.triangle.fill")
+                Label("No signing key", systemImage: "exclamationmark.triangle.fill")
                     .foregroundColor(.orange)
 
-                Button("Import from Keychain") {
-                    importCredentials()
-                }
-                .buttonStyle(.borderedProminent)
+                Button("Generate Signing Key") { generateKey() }
+                    .buttonStyle(.borderedProminent)
             }
 
             Divider()
@@ -62,9 +93,28 @@ struct ContentView: View {
         .padding(40)
         .frame(minWidth: 400, minHeight: 440)
         .task {
-            checkCredentials()
+            checkKey()
             await registerDomain()
             debugOutput = DebugLog.read()
+        }
+    }
+
+    private func checkKey() {
+        hasKey = KeyManager.hasKey()
+        deviceId = DeviceIdentifier.current
+        if hasKey {
+            publicKeyPEM = (try? KeyManager.exportPublicKey()) ?? ""
+        }
+    }
+
+    private func generateKey() {
+        do {
+            publicKeyPEM = try KeyManager.generateKey()
+            hasKey = true
+            deviceId = DeviceIdentifier.current
+            showingKey = true
+        } catch {
+            domainStatus = "Key generation failed: \(error.localizedDescription)"
         }
     }
 
@@ -106,94 +156,5 @@ struct ContentView: View {
         } catch {
             domainStatus += "\nFailed: \(error.localizedDescription)"
         }
-    }
-
-    private func checkCredentials() {
-        hasToken = readSharedKeychain(service: "share-token-mac") != nil
-        hasSecret = readSharedKeychain(service: "share-secret-mac") != nil
-
-        if hasToken && hasSecret {
-            status = "Ready"
-        } else {
-            status = "Credentials not in app group"
-        }
-    }
-
-    private func importCredentials() {
-        guard let token = readLoginKeychain(service: "share-token-mac", account: "thetube"),
-              let secret = readLoginKeychain(service: "share-secret-mac", account: "thetube") else {
-            status = "Not found in login keychain"
-            return
-        }
-
-        let tokenOk = writeSharedKeychain(service: "share-token-mac", account: "thetube", value: token)
-        let secretOk = writeSharedKeychain(service: "share-secret-mac", account: "thetube", value: secret)
-
-        if tokenOk && secretOk {
-            hasToken = true
-            hasSecret = true
-            status = "Ready"
-        } else {
-            status = "Failed to write to shared keychain"
-        }
-    }
-
-    // MARK: - Login Keychain (default, no access group)
-
-    private func readLoginKeychain(service: String, account: String) -> String? {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: account,
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne,
-        ]
-
-        var result: AnyObject?
-        let status = SecItemCopyMatching(query as CFDictionary, &result)
-
-        guard status == errSecSuccess, let data = result as? Data else { return nil }
-        return String(data: data, encoding: .utf8)
-    }
-
-    // MARK: - Shared Keychain (app group)
-
-    private func readSharedKeychain(service: String) -> String? {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: "thetube",
-            kSecAttrAccessGroup as String: "group.com.thetube.fs",
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne,
-        ]
-
-        var result: AnyObject?
-        let status = SecItemCopyMatching(query as CFDictionary, &result)
-
-        guard status == errSecSuccess, let data = result as? Data else { return nil }
-        return String(data: data, encoding: .utf8)
-    }
-
-    private func writeSharedKeychain(service: String, account: String, value: String) -> Bool {
-        let deleteQuery: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: account,
-            kSecAttrAccessGroup as String: "group.com.thetube.fs",
-        ]
-        SecItemDelete(deleteQuery as CFDictionary)
-
-        let addQuery: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: account,
-            kSecAttrAccessGroup as String: "group.com.thetube.fs",
-            kSecValueData as String: Data(value.utf8),
-            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
-        ]
-
-        let status = SecItemAdd(addQuery as CFDictionary, nil)
-        return status == errSecSuccess
     }
 }
