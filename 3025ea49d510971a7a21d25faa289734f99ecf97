@@ -1,0 +1,1 @@
+P-256 auth: KeyManager generates key pair, TubeRequest signs canonical string (method+path+timestamp+body_hash). Touch ID via Keychain access control. Tested end-to-end: FileProvider HTTP 200, Share Extension capture with Touch ID → S3.
