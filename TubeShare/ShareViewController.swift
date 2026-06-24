@@ -6,14 +6,27 @@ class ShareViewController: UIViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        DebugLog.log("Share: extension launched")
         Task {
             await handleShare()
+            DebugLog.log("Share: completing request")
             extensionContext?.completeRequest(returningItems: nil)
         }
     }
 
     private func handleShare() async {
-        guard let items = extensionContext?.inputItems as? [NSExtensionItem] else { return }
+        guard let items = extensionContext?.inputItems as? [NSExtensionItem] else {
+            DebugLog.log("Share: no input items")
+            return
+        }
+
+        DebugLog.log("Share: \(items.count) input items")
+
+        // Check key availability early
+        if !KeyManager.hasKey() {
+            DebugLog.log("Share: ERROR — no signing key in Keychain (extension cannot access key)")
+            return
+        }
 
         for item in items {
             guard let attachments = item.attachments else { continue }
@@ -44,10 +57,12 @@ class ShareViewController: UIViewController {
             "date": String(today),
         ]
 
+        DebugLog.log("Share: capture \(type) → \(file)")
         do {
-            _ = try await TubeRequest.shared.fire("share/add", params: params)
+            let result = try await TubeRequest.shared.fire("share/add", params: params)
+            DebugLog.log("Share: success → \(result)")
         } catch {
-            // Silent failure — share extensions shouldn't block the user
+            DebugLog.log("Share: error → \(error)")
         }
     }
 }
@@ -112,10 +127,12 @@ class ShareViewController: NSViewController {
             "date": String(today),
         ]
 
+        DebugLog.log("Share: capture \(type) → \(file)")
         do {
-            _ = try await TubeRequest.shared.fire("share/add", params: params)
+            let result = try await TubeRequest.shared.fire("share/add", params: params)
+            DebugLog.log("Share: success → \(result)")
         } catch {
-            // Silent failure — share extensions shouldn't block the user
+            DebugLog.log("Share: error → \(error)")
         }
     }
 }

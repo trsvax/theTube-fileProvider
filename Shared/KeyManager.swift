@@ -34,28 +34,15 @@ enum KeyManager {
         let privateKey = P256.Signing.PrivateKey()
         let keyData = privateKey.x963Representation
 
-        let access = SecAccessControlCreateWithFlags(
-            nil,
-            kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
-            .biometryCurrentSet,
-            nil
-        )
-
-        var attributes: [String: Any] = [
+        let attributes: [String: Any] = [
             kSecClass as String: kSecClassKey,
             kSecAttrKeyType as String: kSecAttrKeyTypeECSECPrimeRandom,
             kSecAttrKeySizeInBits as String: 256,
             kSecAttrApplicationTag as String: tag,
             kSecAttrAccessGroup as String: accessGroup,
             kSecValueData as String: keyData,
-            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
         ]
-
-        // Add biometric protection if available
-        if let access {
-            attributes[kSecAttrAccessControl as String] = access
-            attributes.removeValue(forKey: kSecAttrAccessible as String)
-        }
 
         let status = SecItemAdd(attributes as CFDictionary, nil)
         guard status == errSecSuccess else {

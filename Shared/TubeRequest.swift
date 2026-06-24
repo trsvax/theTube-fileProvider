@@ -149,8 +149,10 @@ actor TubeRequest {
 
         let (data, response) = try await URLSession.shared.data(for: request)
 
-        guard let http = response as? HTTPURLResponse, http.statusCode == 202 else {
-            throw TubeError.unexpected("Expected 202 for fire")
+        guard let http = response as? HTTPURLResponse,
+              (200...202).contains(http.statusCode) else {
+            let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+            throw TubeError.unexpected("Expected 200/202 for fire, got \(code)")
         }
 
         return try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
