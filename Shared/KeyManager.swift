@@ -1,45 +1,47 @@
 import Foundation
 import CryptoKit
 
-/// Manages the P-256 signing key pair in the shared Keychain.
-/// The private key is stored with biometric access control (Touch ID / Face ID).
-/// The public key can be exported for server registration.
+/// Manages the P-256 signing key pair.
+/// On iOS: Keychain with app group for cross-extension access.
+/// On macOS: shared app group container file (Keychain access groups
+/// don't work reliably across sandboxed app + extension without paid provisioning).
 enum KeyManager {
 
     private static let tag = "today.thetube.signing-key".data(using: .utf8)!
-    private static let accessGroup = "group.com.thetube.fs"
+    private static let sharedKeyFilename = "signing-key.dat"
 
     // MARK: - Key operations
 
-    /// Load the private key from Keychain. Returns nil if not yet generated.
+    /// Load the private key. Returns nil if not yet generated.
     static func loadPrivateKey() throws -> P256.Signing.PrivateKey {
-        guard let keyData = readKeyFromKeychain() else {
+        guard let keyData = readKey() else {
             throw KeyError.notFound
         }
         return try P256.Signing.PrivateKey(x963Representation: keyData)
     }
 
-    /// Check if a signing key exists in the Keychain.
+    /// Check if a signing key exists.
     static func hasKey() -> Bool {
-        readKeyFromKeychain() != nil
+        readKey() != nil
     }
 
-    /// Generate a new P-256 key pair and store the private key in Keychain.
+    /// Generate a new P-256 key pair and store the private key.
     /// Returns the public key PEM for registration with the server.
     @discardableResult
     static func generateKey() throws -> String {
-        // Remove existing key if any
         deleteKey()
 
         let privateKey = P256.Signing.PrivateKey()
         let keyData = privateKey.x963Representation
 
+        #if os(iOS)
+        // iOS: store in Keychain with app group for extension access
         let attributes: [String: Any] = [
             kSecClass as String: kSecClassKey,
             kSecAttrKeyType as String: kSecAttrKeyTypeECSECPrimeRandom,
             kSecAttrKeySizeInBits as String: 256,
             kSecAttrApplicationTag as String: tag,
-            kSecAttrAccessGroup as String: accessGroup,
+            kSecAttrAccessGroup as String: "group.com.thetube.fs",
             kSecValueData as String: keyData,
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
         ]
@@ -48,6 +50,12 @@ enum KeyManager {
         guard status == errSecSuccess else {
             throw KeyError.keychainWrite(status)
         }
+        #else
+        // macOS: store in shared container file
+        guard writeKeyToSharedContainer(keyData) else {
+            throw KeyError.containerWrite
+        }
+        #endif
 
         return publicKeyPEM(from: privateKey)
     }
@@ -58,24 +66,42 @@ enum KeyManager {
         return publicKeyPEM(from: privateKey)
     }
 
-    /// Delete the signing key from Keychain.
+    /// Delete the signing key.
     static func deleteKey() {
+        #if os(iOS)
         let query: [String: Any] = [
             kSecClass as String: kSecClassKey,
             kSecAttrApplicationTag as String: tag,
-            kSecAttrAccessGroup as String: accessGroup,
+            kSecAttrAccessGroup as String: "group.com.thetube.fs",
         ]
         SecItemDelete(query as CFDictionary)
+        #else
+        if let container = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: "group.com.thetube.fs"
+        ) {
+            let keyURL = container.appendingPathComponent(sharedKeyFilename)
+            try? FileManager.default.removeItem(at: keyURL)
+        }
+        #endif
     }
 
     // MARK: - Private
 
+    private static func readKey() -> Data? {
+        #if os(iOS)
+        return readKeyFromKeychain()
+        #else
+        return readKeyFromSharedContainer()
+        #endif
+    }
+
+    #if os(iOS)
     private static func readKeyFromKeychain() -> Data? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassKey,
             kSecAttrApplicationTag as String: tag,
             kSecAttrKeyType as String: kSecAttrKeyTypeECSECPrimeRandom,
-            kSecAttrAccessGroup as String: accessGroup,
+            kSecAttrAccessGroup as String: "group.com.thetube.fs",
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne,
         ]
@@ -87,6 +113,29 @@ enum KeyManager {
             return nil
         }
         return data
+    }
+    #endif
+
+    @discardableResult
+    private static func writeKeyToSharedContainer(_ keyData: Data) -> Bool {
+        guard let container = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: "group.com.thetube.fs"
+        ) else { return false }
+        let keyURL = container.appendingPathComponent(sharedKeyFilename)
+        do {
+            try keyData.write(to: keyURL, options: .completeFileProtection)
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    private static func readKeyFromSharedContainer() -> Data? {
+        guard let container = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: "group.com.thetube.fs"
+        ) else { return nil }
+        let keyURL = container.appendingPathComponent(sharedKeyFilename)
+        return try? Data(contentsOf: keyURL)
     }
 
     private static func publicKeyPEM(from privateKey: P256.Signing.PrivateKey) -> String {
@@ -101,5 +150,6 @@ enum KeyManager {
     enum KeyError: Error {
         case notFound
         case keychainWrite(OSStatus)
+        case containerWrite
     }
 }

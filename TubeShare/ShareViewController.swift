@@ -69,29 +69,44 @@ class ShareViewController: UIViewController {
 
 #else
 import AppKit
+import Social
 import UniformTypeIdentifiers
 
-class ShareViewController: NSViewController {
+class ShareViewController: SLComposeServiceViewController {
 
-    override func loadView() {
-        self.view = NSView(frame: NSRect(x: 0, y: 0, width: 1, height: 1))
-    }
-
-    override func viewDidAppear() {
-        super.viewDidAppear()
+    override func didSelectPost() {
+        NSLog("TubeShare: didSelectPost fired")
         Task {
             await handleShare()
-            extensionContext?.completeRequest(returningItems: nil) { _ in }
+            NSLog("TubeShare: handleShare complete")
+            self.extensionContext?.completeRequest(returningItems: nil) { _ in }
         }
     }
 
+    override func isContentValid() -> Bool {
+        return true
+    }
+
     private func handleShare() async {
-        guard let items = extensionContext?.inputItems as? [NSExtensionItem] else { return }
+        guard let items = extensionContext?.inputItems as? [NSExtensionItem] else {
+            NSLog("TubeShare: no input items")
+            return
+        }
+
+        NSLog("TubeShare: \(items.count) input items")
+
+        if !KeyManager.hasKey() {
+            NSLog("TubeShare: ERROR — no signing key")
+            return
+        }
 
         for item in items {
             guard let attachments = item.attachments else { continue }
 
             for attachment in attachments {
+                let types = attachment.registeredTypeIdentifiers
+                NSLog("TubeShare: attachment types: \(types)")
+
                 if attachment.hasItemConformingToTypeIdentifier(UTType.url.identifier) {
                     if let item = try? await attachment.loadItem(forTypeIdentifier: UTType.url.identifier) {
                         let urlString: String?
@@ -127,12 +142,12 @@ class ShareViewController: NSViewController {
             "date": String(today),
         ]
 
-        DebugLog.log("Share: capture \(type) → \(file)")
+        NSLog("TubeShare: capture \(type) → \(file)")
         do {
             let result = try await TubeRequest.shared.fire("share/add", params: params)
-            DebugLog.log("Share: success → \(result)")
+            NSLog("TubeShare: success → \(result)")
         } catch {
-            DebugLog.log("Share: error → \(error)")
+            NSLog("TubeShare: error → \(error)")
         }
     }
 }
